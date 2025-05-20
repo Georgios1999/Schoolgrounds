@@ -1,0 +1,4 @@
+repository "Schoolgrounds@gspithos@cloud"
+  path "/"
+    br "/main"
+    co "/main"
