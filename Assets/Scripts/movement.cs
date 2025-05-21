@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class movement : NetworkBehaviour
 {
@@ -7,6 +8,7 @@ public class movement : NetworkBehaviour
     Vector3 velocity = Vector3.zero;
     Transform camera;
     Animator animator;
+    bool canRest = true;
 
     [SerializeField]
     public float defaultSpeed = 0.08f;
@@ -36,6 +38,7 @@ public class movement : NetworkBehaviour
             GetComponentInChildren<Camera>().enabled = true;
             camera = GetComponentInChildren<Camera>().transform;
         }
+        speed = defaultSpeed;
     }
 
     private void Update()
@@ -44,7 +47,7 @@ public class movement : NetworkBehaviour
         animator.SetBool("steady", steady);
         animator.SetLayerWeight(0, 1 - steadyingBalance);
         animator.SetLayerWeight(1, steadyingBalance);
-        animationSpeed = speed;
+        animationSpeed = speed * 30;
         animator.speed = animationSpeed;
 
         float horizontal = Input.GetAxis("Horizontal");
@@ -58,17 +61,21 @@ public class movement : NetworkBehaviour
             controller.Move((transform.forward * vertical * speed) + (transform.right * horizontal * speed) + velocity * Time.deltaTime);
         }
 
-        if (Input.GetKey(KeyCode.LeftShift) && stamina > 0)
+        if (Input.GetKey(KeyCode.LeftShift) && stamina > 1)
         {
             speed = sprintSpeed;
             float staminaReduction = horizontal + vertical * Time.deltaTime;
-            stamina -= staminaReduction;
+            stamina -= staminaReduction * 20;
+            canRest = false;
         }
         else if (Input.GetKeyUp(KeyCode.LeftShift))
         {
             speed = defaultSpeed;
-            stamina += Time.deltaTime;
+            StartCoroutine(staminaDelay());
         }
+        else { speed = defaultSpeed; }
+
+        if (canRest) { stamina += Time.deltaTime * 20; }
 
         if (!controller.isGrounded)
         {
@@ -92,5 +99,11 @@ public class movement : NetworkBehaviour
     {
         transform.rotation = Quaternion.Euler(0, yaw, 0);
         camera.localRotation = Quaternion.Euler(Mathf.Clamp(pitch, -70, 45), 0, 0);
+    }
+
+    IEnumerator staminaDelay()
+    {
+        yield return new WaitForSecondsRealtime(3);
+        canRest = true;
     }
 }
