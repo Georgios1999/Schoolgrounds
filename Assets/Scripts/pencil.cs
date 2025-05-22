@@ -9,7 +9,7 @@ public class pencil : NetworkBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
-            Instantiate(obj, new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0));
+            Instantiate(obj, transform.position, transform.rotation);
         }
     }
 }
